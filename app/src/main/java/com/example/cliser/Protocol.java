@@ -10,14 +10,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.TimeZone;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public final class Protocol{
     public static final String URL = "/xmlapi/std";
-    public static final SimpleDateFormat DateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z"); //new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    public static final SimpleDateFormat LocalDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.getDefault());
 
     public static JSONObject GetContent(int aCID, int aSIDResp) {
 
@@ -41,8 +40,8 @@ public final class Protocol{
     public static JSONObject GetContent(int aCID, int aSIDResp, Date now) {
         try {
             JSONArray dateTime = new JSONArray();
-            dateTime.put(new JSONObject().put("LocalTime", LocalDateFormat.format(now)));
-            dateTime.put(new JSONObject().put("UTCTime", DateFormat.format(now)));
+            //dateTime.put(new JSONObject().put("LocalTime", LocalDateFormat.format(now)));
+            //dateTime.put(new JSONObject().put("UTCTime", DateFormat.format(now)));
 
             JSONObject content = GetContent(aCID, aSIDResp);
             content.getJSONObject("Envelope").put("SetDateTime", dateTime);

@@ -8,7 +8,10 @@ import org.json.JSONObject;
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class PollTask extends AsyncTask<String, Void, String> {
     String ServerIP,Password;
@@ -20,6 +23,10 @@ public class PollTask extends AsyncTask<String, Void, String> {
     String RequestUri;
     AsyncHttpClient HTTPClient;
     AsyncHttpResponseHandler HTTPResponse;
+
+
+    SimpleDateFormat DateFormat; //new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    SimpleDateFormat LocalDateFormat;
 
     HttpURLConnection urlConnection;
 
@@ -45,6 +52,9 @@ public class PollTask extends AsyncTask<String, Void, String> {
         CommandID = 10000;
         Terminated = false;
 
+        DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        LocalDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     }
 
     private int IncCID() {
@@ -81,7 +91,9 @@ public class PollTask extends AsyncTask<String, Void, String> {
     {
         String Nonce = Protocol.GetNonce();
         Date now = new Date();
-        String CreationTime = Protocol.DateFormat.format(new Date(now.getTime() + TimeCorrection));
+
+        String CreationTime = DateFormat.format(new Date(now.getTime() + TimeCorrection));
+
 
         if (Math.abs(TimeCorrection) > 5)
         {
@@ -93,7 +105,11 @@ public class PollTask extends AsyncTask<String, Void, String> {
             JContent = Protocol.GetContent(IncCID(), SID);
         }
         try {
-            Content = JContent.toString().getBytes();
+
+            String s = "<Envelope>\n  <Body>\n    <CID>10001</CID>\n    <SIDResp>0</SIDResp>\n  </Body>\n</Envelope>";
+            Content = s.getBytes("UTF8");
+            //Content = JContent.toString().getBytes("UTF8");
+
             String Digest = Protocol.GetDigest(Nonce, Password, Content, CreationTime);
 
             URL url = new URL(String.format("http://%s%s", ServerIP, Protocol.URL));
@@ -101,7 +117,7 @@ public class PollTask extends AsyncTask<String, Void, String> {
 
             urlConnection.setRequestMethod("POST");
             urlConnection.setRequestProperty("ECNC-Auth", String.format("Nonce=\"%s\", Created=\"%s\", Digest=\"%s\"", Nonce, CreationTime, Digest));
-            urlConnection.setRequestProperty("Date", Protocol.LocalDateFormat.format(now));
+            urlConnection.setRequestProperty("Date", LocalDateFormat.format(now));
             urlConnection.setRequestProperty("Connection", "close");
             urlConnection.setRequestProperty("Content-Type", "application/json");
             urlConnection.setRequestProperty("Accept-Encoding", "identity");
